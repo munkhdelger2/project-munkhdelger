@@ -27,7 +27,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-
+import numpy as np
 from io import BytesIO
 import base64
 import pandas as pd
@@ -498,24 +498,12 @@ def calculate_ngram_frequency(text, n, top_n=None):
     # Generate ngrams for the text
     ngrams_list = generate_ngrams(text, n)
     ngram_freq.update(ngrams_list)
-    
-    # Convert frequency dictionary to DataFrame
     ngram_df = pd.DataFrame.from_dict(ngram_freq, orient='index', columns=['Давтамж'])
     ngram_df.index = ngram_df.index.map(' '.join)
-    
-    # Rename index to 'Word' (for n=1) or 'N-gram' (for n>1)
     ngram_df.index.name = 'Үг' if n == 1 else f'{n}-gram'
-    
-    # Sort by frequency
     ngram_df = ngram_df.sort_values(by='Давтамж', ascending=False)
-    
-    # Replace 'Rank' column with actual words forming the n-grams
     ngram_df['Үг'] = ngram_df.index
-    
-    # Drop the original index column
     ngram_df.reset_index(drop=True, inplace=True)
-    
-    # If top_n is specified, return top n ngrams
     if top_n is not None:
         ngram_df = ngram_df.head(top_n)
     
@@ -541,8 +529,8 @@ def word_cluster_dataframe(dataframe, columns, n, selected_word):
     right_result = pd.DataFrame(columns=['Word', 'Баруун'])
 
     for col in columns:
-        for sentence_list in dataframe[col]:  # Iterate over each list of sentences
-            for sentence in sentence_list:    # Iterate over each sentence in the list
+        for sentence_list in dataframe[col]:  
+            for sentence in sentence_list:    
                 left_cluster, right_cluster = word_cluster(sentence, n, selected_word)
                 left_result = pd.concat([left_result, left_cluster], ignore_index=True)
                 right_result = pd.concat([right_result, right_cluster], ignore_index=True)
@@ -550,15 +538,12 @@ def word_cluster_dataframe(dataframe, columns, n, selected_word):
     return left_result, right_result
 
 def process_texts(text1, text2):
-    # Initialize empty dataframes for the first set of results
     result_df1 = pd.DataFrame()
     result_df2 = pd.DataFrame()
     result_df = pd.DataFrame()
     result_df_ = pd.DataFrame()
-    # Process the first text and update the dataframes
     df, result_df1, result_df2, result_df, result_df_ = process(text1, result_df1, result_df2, result_df, result_df_)
 
-    # Initialize empty dataframes for the second set of results
     result_df12 = pd.DataFrame()
     result_df22 = pd.DataFrame()
     result_df32 = pd.DataFrame()
@@ -694,15 +679,12 @@ def ngramplot(df, n):
     plt.xlabel("Үг", fontsize=14)
     plt.ylabel("Давтамж", fontsize=14)
     plt.title(f"{n}-Үгийн давтамжийн тархалт", fontsize=16)
-    plt.xticks(rotation=45, ha='right', fontsize=12)  # Rotate labels and align right for better readability
+    plt.xticks(rotation=45, ha='right', fontsize=12)  
     plt.yticks(fontsize=12)
-
-    # Add value labels to each bar for better visibility
     for bar in bars:
         yval = bar.get_height()
         plt.text(bar.get_x() + bar.get_width()/2, yval + 0.05, int(yval), ha='center', va='bottom', fontsize=10, color='black')
 
-    # Adjust the layout to make room for the rotated labels
     plt.tight_layout()
     
     buf = BytesIO()
@@ -716,34 +698,39 @@ def process_text(text, word):
     result_df2 = pd.DataFrame()
     result_df = pd.DataFrame()
     result_df_ = pd.DataFrame()
-    # Process the first text and update the dataframes
     df, result_df1, result_df2, result_df, result_df_ = process(text, result_df1, result_df2, result_df, result_df_)
     
-    # First Plot: Word Counts Before and After
-    plt.figure(figsize=(12, 6))
-    sorted_counts1 = df['Word_Counts'].sort_values(ascending=False)
-    plt.plot(df.index, sorted_counts1, linestyle='-', color='red', marker='o', label='Өмнө нь')
-    sorted_counts2 = df['Word_Counts_'].sort_values(ascending=False)
-    plt.plot(df.index, sorted_counts2, linestyle='-', color='blue', marker='o', label='Дараа нь')
-    
+    if len(df) > 1000:
+        agg_counts1 = df['Word_Counts'].groupby(df.index // 100).mean()
+        agg_counts2 = df['Word_Counts_'].groupby(df.index // 100).mean()
+
+        plt.figure(figsize=(12, 6))
+        plt.plot(np.arange(len(agg_counts1)), agg_counts1, linestyle='-', color='red', marker='o', label='Өмнө нь')
+        plt.plot(np.arange(len(agg_counts2)), agg_counts2, linestyle='-', color='blue', marker='o', label='Дараа нь')
+    else:
+        plt.figure(figsize=(12, 6))
+        sorted_counts1 = df['Word_Counts'].sort_values(ascending=False)
+        plt.plot(df.index, sorted_counts1, linestyle='-', color='red', marker='o', label='Өмнө нь')
+        sorted_counts2 = df['Word_Counts_'].sort_values(ascending=False)
+        plt.plot(df.index, sorted_counts2, linestyle='-', color='blue', marker='o', label='Дараа нь')
+
     plt.xlabel('Өгүүлбэрийн дэс дугаар', fontsize=14)
     plt.ylabel('Үгийн тоо', fontsize=14)
     plt.title('Сул үг хассаны өмнөх болон дараах өгүүлбэр дэх үгийн тоо', fontsize=16)
     plt.grid(True, linestyle='--', alpha=0.7)
     plt.legend(fontsize=12)
     plt.tight_layout()
-    
+
     buf1 = BytesIO()
     plt.savefig(buf1, format="png")
     buf1.seek(0)
     plot_url = base64.b64encode(buf1.getvalue()).decode("utf-8")
     plt.close()
-    
+
     text12 = ' '.join(flatten_list(df['Sentence']))
     text13 = ''.join(flatten_list(df['word'])) 
     data1, data2, len1, len2 = main1(text12, text13)
     
-    # Second Plot: Word Length Frequencies Before and After
     plt.figure(figsize=(12, 6))
     merged_df = pd.merge(data1, data2, on='word_len', how='outer').fillna(0)
     merged_df = merged_df.sort_values(by='word_len')
@@ -764,7 +751,6 @@ def process_text(text, word):
     plot_url1 = base64.b64encode(buf1.getvalue()).decode("utf-8")
     plt.close()
 
-    # Third Plot: Sentence Word Count Comparison
     plt.figure(figsize=(12, 6))
     plt.plot(df.index, sorted_counts1, linestyle='-', color='red', marker='o', label='text 1')
 
@@ -787,7 +773,7 @@ def process_text(text, word):
     gram_df1 = calculate_ngram_frequency(text13, 1, top_n=30)
     top_ngrams = gram_df1.head(15)
     columns_to_apply = ['Sentence']
-    n = 3  # Number of words to include on each side
+    n = 3  
     left_contexts, right_contexts = word_cluster_dataframe(df, columns_to_apply, n, word)
     merged_contexts = pd.concat([left_contexts, right_contexts['Баруун']], axis=1)
     plot_url11 = ngramplot(gram_df1, 1)
@@ -797,7 +783,6 @@ def process_text(text, word):
     return df, gram_df1, gram_df2, gram_df3, df, plot_url, plot_url1, plot_url11, plot_url12, plot_url13, plot_url21
 
 def kwic(sentence, n, word):
-    # Convert sentence to string to ensure compatibility with split
     if not isinstance(sentence, str):
         sentence = str(sentence)
     
@@ -805,7 +790,7 @@ def kwic(sentence, n, word):
     try:
         index = words.index(word)
     except ValueError:
-        return None  # Return None if the word is not in the sentence
+        return None  
 
     left_start = max(0, index - n)
     right_end = min(len(words), index + n + 1)
@@ -824,7 +809,7 @@ def kwic_dataframe(dataframe, columns, n, word):
     for index, row in dataframe.iterrows():
         for col in columns:
             sentence = row[col]
-            if pd.notna(sentence):  # Ensure the sentence is not NaN
+            if pd.notna(sentence):  
                 kwic_result = kwic(sentence, n, word)
                 if kwic_result is not None:
                     result_rows.append(kwic_result)
@@ -832,7 +817,7 @@ def kwic_dataframe(dataframe, columns, n, word):
     if result_rows:
         return pd.concat(result_rows, ignore_index=True)
     else:
-        return pd.DataFrame(columns=['Left Context', 'Word', 'Right Context'])  # Return an empty DataFrame with the same columns
+        return pd.DataFrame(columns=['Left Context', 'Word', 'Right Context'])  
 
 from gensim import corpora, models
 import gensim
@@ -841,7 +826,7 @@ def extract_topics(lda_model, num_words=5):
     for topic_id, topic in lda_model.print_topics(num_topics=-1, num_words=num_words):
         word_probs = []
         for word, prob in lda_model.show_topic(topic_id, topn=num_words):
-            word_probs.append((word, round(prob, 4)))  # round for better display/storage
+            word_probs.append((word, round(prob, 4)))  
         topics.append({
             'topic_id': topic_id,
             'words': word_probs
@@ -857,13 +842,11 @@ def perform_topic_modeling(texts, num_topics=5, num_words=5):
     return topics
 
 
-# Instantiate the Flask app first
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
 app.config['SECRET_KEY'] = 'your-secret-key'
 db = SQLAlchemy(app)
 
-# Define the User model before creating tables
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
@@ -882,7 +865,6 @@ class Task(db.Model):
 
 @login_manager.user_loader
 def load_user(user_id):
-    # Using the modern approach with explicit session management
     return db.session.get(User, int(user_id))
 
 class HtmlContent(db.Model):
@@ -896,25 +878,22 @@ class HtmlContent(db.Model):
 from threading import Thread
 
 def task_checker():
-    with app.app_context():  # Ensure all Flask context-dependent functions have access to the context
+    with app.app_context():  
         while True:
             time.sleep(10)
             process_tasks()
-              # Adjust the frequency of checks as needed
 
         
 def start_background_task():
     thread = Thread(target=task_checker)
-    thread.daemon = True  # Ensures that the thread will not prevent the program from exiting
+    thread.daemon = True  
     thread.start()
 
 
-# Create tables
 with app.app_context():
     db.create_all()
     start_background_task()
 
-# Setup Flask-Login
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
@@ -924,33 +903,21 @@ def load_user(user_id):
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    text1 = ""  # Define text1 before its potential usage
+    text1 = "" 
     if request.method == "POST":
-        # Check if a file is uploaded
         if 'file1' in request.files:
             file = request.files['file1']
-            # Check if the file is uploaded
             if file.filename != '':
-                # Read the content of the file
                 text = file.read().decode("utf-8")
         if 'file2' in request.files:
             file = request.files['file2']
-            # Check if the file is uploaded
             if file.filename != '':
-                # Read the content of the file
-                text1 = file.read().decode("utf-8")  # Assign value to text1
+                text1 = file.read().decode("utf-8") 
         else:
             text = request.form.get("text1", "")
             text1 = request.form.get("text2", "")
         if request.form.get("action") == "process_word":
             return process_data(request)
-        """ 
-        if current_user.is_authenticated:
-            new_task = Task(user_id=current_user.id, text_input1=text, text_input2=text1 if text1 else None)
-            db.session.add(new_task)
-            db.session.commit()
-            flash("Your task has been added to the queue!")
-        """
         if text1:  
             result_html = process_dual_texts(text, text1)
             save_results(current_user.id, result_html)
@@ -961,13 +928,24 @@ def index():
             return result_html
         
     return render_template("index.html", user=current_user)
- # Check for new tasks every 60 seconds
+
+
+@app.route('/save_task', methods=['POST'])
+@login_required
+def save_task():
+    data = request.get_json()
+    text = data.get('text', '')
+    text1 = data.get('text1', '')
+    new_task = Task(user_id=current_user.id, text_input1=text, text_input2=text1 if text1 else None)
+    db.session.add(new_task)
+    db.session.commit()
+    return jsonify({"status": "success"})
+
 def process_tasks():
     pending_tasks = Task.query.filter_by(status='pending').all()
     for task in pending_tasks:
-        start_time = time.time()  # Start time moved outside of try for broader scope
+        start_time = time.time()  
         try:
-            print('task started')
             task.status = 'processing'
             db.session.commit()
 
@@ -975,10 +953,7 @@ def process_tasks():
                 result_html = process_dual_texts(task.text_input1, task.text_input2)
             else:
                 result_html = process_single_text(task.text_input1)
-            print('almost done')
             save_results(task.user_id, result_html)
-            
-            task.status = 'completed'  # Mark as completed
             db.session.delete(task)
             db.session.commit()
 
@@ -987,29 +962,20 @@ def process_tasks():
             db.session.commit()
             print(f"Error processing task {task.id}: {e}")
 
-        finally:
-            end_time = time.time()
-            elapsed_time = end_time - start_time
-            print(f'Task completed in {elapsed_time:.2f} seconds')
 
 
-
-# Words to remove
-
-# Assuming remove_words is defined to handle lists correctly
 def remove_words(text_list, remove_list):
     return [word for word in text_list if word not in remove_list]
 def process_single_text(text):
-    # Dummy implementation of processing logic for a single text input
     df,result_df1,result_df2,result_df3, df,plot_url, plot_url1,plot_url11,plot_url12, plot_url13, plot_url21 = process_text(text, word)
     text2 = ''.join(flatten_list(df['word']))
-    words = text2.split()  # Split the text into words
-    words1 = text.split()  # Split the text into words
-    word_count1 = len(words)  # Get the total number of words
-    word_count = len(words1)  # Get the total number of words
+    words = text2.split()  
+    words1 = text.split()  
+    word_count1 = len(words)  
+    word_count = len(words1) 
     height = df.shape[0]
     
-    words = text2.split()  # Split the text into words
+    words = text2.split()  
 
     words_to_remove = ['байна', 'байгаа', '[байлаа', 'байв' , 'байлаа', 'байдаг', 'байх', 'бай', 'бол']
     words = remove_words(words, words_to_remove)
@@ -1031,20 +997,19 @@ def process_single_text(text):
 
 
 def process_dual_texts(text, text1):
-    # Dummy implementation of processing logic for dual text inputs
     df, df2, result_df11, result_df12, result_df13, result_df21, result_df22, result_df23,plot_url1, plot_url2, plot_url3, plot_url4, merged_df = process_texts(text, text1)
     text3 = ''.join(flatten_list(df['word']))
     text4 = ''.join(flatten_list(df2['word']))
     df = df.drop(columns=[ 'Word_Counts'])
     df2 = df2.drop(columns=[ 'Word_Counts'])
-    words = text3.split()  # Split the text into words
+    words = text3.split()  
     word_count1 = len(words) 
-    words = text4.split()  # Split the text into words
+    words = text4.split()  
     word_count2 = len(words)  
-    words = text.split()  # Split the text into words
-    word_count = len(words)  # Get the total number of words
-    words = text1.split()  # Split the text into words
-    word_count_ = len(words)  # Get the total number of words
+    words = text.split()  
+    word_count = len(words) 
+    words = text1.split() 
+    word_count_ = len(words)  
     height = df.shape[0]
     height1 = df2.shape[0]
     vectorizer = TfidfVectorizer()
@@ -1084,7 +1049,6 @@ def process_data():
     return jsonify({'html': kwic_df.to_html(classes='myDataFrameStyle', index=False)})
 
 def save_results(user_id, html_content):
-    # Assuming you have a model to store HTML content
     new_html_record = HtmlContent(user_id=user_id, content=html_content)
     db.session.add(new_html_record)
     db.session.commit()
@@ -1092,7 +1056,6 @@ def save_results(user_id, html_content):
 @app.route('/history')
 @login_required
 def history():
-    # Fetch the last 10 HTML content records for the current user, including the creation date
     sessions = HtmlContent.query.filter_by(user_id=current_user.id)\
                                 .order_by(HtmlContent.created_at.desc())\
                                 .limit(10)\
@@ -1103,8 +1066,7 @@ def history():
 @login_required
 def view_session(session_id):
     html_record = HtmlContent.query.get_or_404(session_id)
-    return html_record.content  # Directly return the saved HTML content
-
+    return html_record.content  
 
 """
 @app.route("/process-data", methods=["POST"])
@@ -1148,7 +1110,6 @@ def logout():
 @login_required
 def clear_history():
     try:
-        # Delete the user's history entries
         HtmlContent.query.filter_by(user_id=current_user.id).delete()
         db.session.commit()
         flash('History cleared successfully!', 'success')

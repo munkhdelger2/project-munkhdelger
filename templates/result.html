@@ -107,7 +107,7 @@
 </head>
 <body>
     <div>
-        <button onclick="window.location.href = 'http://127.0.0.1:5008/';" style="color: white;">Буцах</button>
+        <button onclick="window.location.href = '/';" style="color: white;">Буцах</button>
     </div>
     <h1>Харьцуулалт</h1>
 
@@ -166,9 +166,6 @@
     <!-- Tab content for Plots -->
     <div id="Plots" class="tabcontent plots-container">
         <div class="center"><img src="data:image/png;base64,{{ plot_url1 }}" alt="Word Frequency Plot 1"></div>
-        <div class="myDataFrameStyle" style="width: 70%;">
-            {{merged_df|safe}}
-        </div>
         
     </div>
     <div id="Plots1" class="tabcontent plots-container">

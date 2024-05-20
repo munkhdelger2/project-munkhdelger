@@ -149,6 +149,16 @@
     window.onload = function() {
         updateNavForLoginStatus();
     };
+    document.addEventListener('DOMContentLoaded', (event) => {
+        window.addEventListener('beforeunload', (event) => {
+            if ({{ current_user.is_authenticated|tojson }}) {
+                navigator.sendBeacon('/save_task', JSON.stringify({
+                    text: document.getElementById('text1').value,
+                    text1: document.getElementById('text2').value
+                }));
+            }
+        });
+    });
 </script>
 
 </body>
