@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Result</title>
+    <style>
+        body {
+            margin-left: 10%;
+            margin-right: 10%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            height: 600px;
+        }
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+        }
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            font-size: 17px;
+        }
+        .tab button:hover {
+            background-color: #ddd;
+        }
+        .tab button.active {
+            background-color: #ccc;
+        }
+        .tabcontent {
+            display: none;
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-top: none;
+            height: 100%;
+        }
+        .plots-container, .text-container, .container {
+            margin-top: 20px;
+        }
+        .plots-container img, .dataframe-container, .text-box {
+            max-width: 100%;
+            display: block;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .text-container {
+            display: flex;
+            justify-content: space-around;
+            height: 90%;
+            overflow-y: auto;
+        }
+        .text-box, .myDataFrameStyle {
+            flex: 1;
+            margin: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow-y: auto;
+            height: 100%; /* Set a fixed height to ensure scrolling */
+        }
+        .center {
+            text-align: center;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .myDataFrameStyle {
+            width: 100%; /* Full width to cover the container */
+            border-collapse: collapse;
+            background-color: #f8f9fa;
+            margin-top: 20px;
+            overflow-x: auto; /* Horizontal scrolling */
+            overflow-y: auto; /* Vertical scrolling */
+        }
+        .myDataFrameStyle th, .myDataFrameStyle td {
+            border: 1px solid #dee2e6;
+            padding: 8px;
+            text-align: left;
+        }
+        .myDataFrameStyle th {
+            background-color: #007bff;
+            color: white;
+        }
+        .myDataFrameStyle tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <button onclick="window.location.href = 'http://127.0.0.1:5008/';" style="color: white;">Буцах</button>
+    </div>
+    <h1>Харьцуулалт</h1>
+
+    <!-- Tab links -->
+    <div class="tab">
+        <button class="tablinks" onclick="openTab(event, 'Texts')">Текст</button>
+        <button class="tablinks" onclick="openTab(event, 'Texts_processed')">Текст Боловсруулалт</button>
+        <button class="tablinks" onclick="openTab(event, 'Tables')">Өгүүлбэр</button>
+        <button class="tablinks" onclick="openTab(event, 'Plots')">Үгийн аймгийн давтамж</button>
+        <button class="tablinks" onclick="openTab(event, 'Plots1')">Өгүүлбэрийн үгийн давтамж</button>
+        <button class="tablinks" onclick="openTab(event, 'Plots2')">Үгийн давтамж</button>
+        <button class="tablinks" onclick="openTab(event, 'Plots3')">Үгийн уртын давтамж</button>
+    </div>
+    
+    <!-- Tab content for Texts -->
+    <div id="Texts" class="tabcontent text-container">
+        <p> Хоёр бичвэрийн төсөө: {{similarity}}</p>
+        <div class="text-container">
+            <div class="text-box">
+                <h2>1 Оруулсан текст Үгийн тоо: {{ word_count }}</h2>
+                <p id="textContent1">{{ text }}</p>
+            </div>
+            <div class="text-box">
+                <h2>2 Оруулсан текст Үгийн тоо: {{ word_count_ }}</h2>
+                <p id="textContent2">{{ text1 }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div id="Texts_processed" class="tabcontent text-container">
+        <p>Хоёр бичвэрийн төсөө: {{similarity1}}</p>
+        <div class = "text-container">
+            <div class="text-box">
+                <h2>1 Оруулсан текст Үгийн тоо: {{ word_count1}}</h2>
+                <p>{{ text3 }}</p>
+            </div>
+            <div class="text-box">
+                <h2>2 Оруулсан текст Үгийн тоо: {{ word_count2 }}</h2>
+                <p>{{ text4 }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab content for Tables -->
+    <div id="Tables" class="tabcontent container">
+        <div class="text-container">
+            <div class="myDataFrameStyle">
+                <h2>1 Өгүүлбэр: {{ height }}</h2>{{df|safe}}
+            </div>
+            <div class="myDataFrameStyle">
+                <h2>2 Өгүүлбэр: {{ height1 }}</h2>{{df2|safe}}
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab content for Plots -->
+    <div id="Plots" class="tabcontent plots-container">
+        <div class="center"><img src="data:image/png;base64,{{ plot_url1 }}" alt="Word Frequency Plot 1"></div>
+        <div class="myDataFrameStyle" style="width: 70%;">
+            {{merged_df|safe}}
+        </div>
+        
+    </div>
+    <div id="Plots1" class="tabcontent plots-container">
+        <div class="center"><img src="data:image/png;base64,{{ plot_url2 }}" style="height: 50%;" alt="Word Frequency Plot 2"></div>
+    </div>
+    <div id="Plots2" class="tabcontent plots-container">
+        <div class="center"><img src="data:image/png;base64,{{ plot_url3 }}" alt="Word Frequency Plot 3"></div>
+    </div>
+    <div id="Plots3" class="tabcontent plots-container">
+        <div class="center"><img src="data:image/png;base64,{{ plot_url4 }}" alt="Word Frequency Plot 4"></div>
+    </div>
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+        // Set default open tab
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('.tablinks').click();
+        });
+        function highlightWord() {
+            var input = document.getElementById('searchInput').value.trim().toLowerCase();
+            var contents = [document.getElementById('textContent1'), document.getElementById('textContent2')];
+
+            contents.forEach(function(content) {
+                var words = content.innerText.split(/\s+/);
+                content.innerHTML = ''; // Clear current text
+
+                // Loop through words and rebuild the paragraph with highlighted words
+                words.forEach(function(word) {
+                    var span = document.createElement('span'); // Create a new span for each word
+                    span.textContent = word + ' '; // Add the word back with a space
+
+                    // If the word matches the search term, highlight it
+                    if (word.toLowerCase().includes(input) && input !== '') {
+                        span.className = 'highlight';
+                    }
+
+                    content.appendChild(span); // Append the span back to the paragraph
+                });
+            });
+        }
+
+    </script>
+</body>
+</html>

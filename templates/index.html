@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Frequency Analyzer</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .dropdown {
+            height: 100%;
+            background-color: #dde0e0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 14%;
+            overflow-x: hidden;
+            padding-top: 20px;
+        }
+        .dropdown a {
+            padding: 8px 16px;
+            text-decoration: none;
+            font-size: 16px;
+            color: #505050;
+            display: block;
+            transition: 0.3s;
+        }
+        .dropdown a:hover {
+            background-color: #ccc;
+        }
+        .dropdown select {
+            width: 80%;
+            padding: 10px;
+            margin: 10%;
+            background-color: #49565ef3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .main-content {
+            margin-left: 15%;
+            padding: 20px;
+        }
+        textarea, input[type="file"], input[type="submit"] {
+            width: 90%;
+            margin-bottom: 10px;
+        }
+        .hidden {
+            display: none;
+        }
+        input[type="submit"] {
+            width: 250px;
+            padding: 10px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        
+    </style>
+</head>
+<body>
+
+<div class="dropdown">
+    {% if not user.is_authenticated %}
+    <a href="/login" id="loginLink">Нэвтрэх</a>
+    <a href="/signup" id="signupLink">Бүртгүүлэх</a>
+    {% else %}
+    <a href="/history">{{ user.username }}</a>
+    <a href="/history">Түүх</a>
+    <a href="/logout" id="logoutLink">Гарах</a>
+    {% endif %}
+    <select onchange="showSection(this.value)">
+        <option value="" selected disabled>Горим сонгох</option>
+        <option value="textbox">Бичвэр боловсруулах</option>
+        <option value="fileInput">Файл боловсруулах</option>
+        <option value="twoTexts">Бичвэр харьцуулах</option>
+        <option value="twoFiles">Файл харьцуулах</option>
+    </select>
+</div>
+
+<div class="main-content">
+    <form action="/" method="post" enctype="multipart/form-data">
+        <div id="text1" class="hidden">
+            <textarea name="text1" rows="10" placeholder="Бичвэрээ оруул"></textarea>
+        </div>
+        <div id="file1" class="hidden">
+            <input type="file" name="file1">
+        </div>
+        <div id="text2" class="hidden">
+            <textarea name="text2" rows="10" placeholder="Бичвэрээ оруул"></textarea>
+        </div>
+        <div id="file2" class="hidden">
+            <input type="file" name="file2">
+        </div>
+        <input type="submit" value="Боловсруулах">
+    </form>
+</div>
+
+<script>
+    function showSection(value) {
+        const elements = ['text1', 'file1', 'text2', 'file2'];
+        elements.forEach(el => document.getElementById(el).classList.add('hidden'));
+        if (value === 'textbox') {
+            document.getElementById('text1').classList.remove('hidden');
+        } else if (value === 'fileInput') {
+            document.getElementById('file1').classList.remove('hidden');
+        } else if (value === 'twoTexts') {
+            document.getElementById('text1').classList.remove('hidden');
+            document.getElementById('text2').classList.remove('hidden');
+        } else if (value === 'twoFiles') {
+            document.getElementById('file1').classList.remove('hidden');
+            document.getElementById('file2').classList.remove('hidden');
+        }
+    }
+
+    function updateNavForLoginStatus() {
+        var isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'; // Retrieve login status from localStorage
+        var loginLink = document.getElementById('loginLink');
+        var logoutLink = document.getElementById('logoutLink');
+        var signupLink = document.getElementById('signupLink');
+        if (isLoggedIn) {
+            loginLink.classList.add('hidden');
+            signupLink.classList.add('hidden');
+            logoutLink.classList.remove('hidden');
+        } else {
+            loginLink.classList.remove('hidden');
+            signupLink.classList.remove('hidden');
+            logoutLink.classList.add('hidden');
+        }
+    }
+
+    // Simulate login action for demonstration
+    function toggleLogin() {
+        var currentStatus = localStorage.getItem('isLoggedIn') === 'true';
+        localStorage.setItem('isLoggedIn', !currentStatus);
+        updateNavForLoginStatus();
+    }
+
+    window.onload = function() {
+        updateNavForLoginStatus();
+    };
+</script>
+
+</body>
+</html>

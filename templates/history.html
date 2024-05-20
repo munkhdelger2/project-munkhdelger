@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History Page</title>
+    <style>
+        body {
+            margin-left: 10%;
+            margin-right: 10%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background-color: #fff;
+            margin-top: 8px;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        a, .btn {
+            text-decoration: none;
+            color: #fff; /* Make text color white */
+            display: block;
+            transition: background-color 0.3s, color 0.2s; /* Smooth transition for background and text color */
+        }
+        a:hover, .btn:hover {
+            background-color: #366995; /* Change background on hover */
+            color: #d0d0d0; /* Lighten text color slightly on hover */
+        }
+        .btn {
+            width: auto;
+            padding: 5px 10px; /* Smaller padding for a smaller button */
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    
+    <div>
+        <button onclick="window.location.href = '/';">Буцах</button>
+    </div>
+    <h1>Боловсруулалтын түүх</h1>
+    <ul>
+        {% for content in html_contents %}
+        <li>
+            <a href="{{ url_for('view_session', session_id=content.id) }} " style="color: black;">
+                {{ content.created_at.strftime('%Y-%m-%d %H:%M:%S') if content.created_at else 'Date not available' }}
+            </a>
+        </li>
+        {% else %}
+        <li>Түүх байхгүй байна.</li>
+        {% endfor %}
+    </ul>
+    <form action="{{ url_for('clear_history') }}" method="post">
+        <button type="submit" class="btn btn-danger">Түүх арилгах</button>
+    </form>
+</body>
+</html>
