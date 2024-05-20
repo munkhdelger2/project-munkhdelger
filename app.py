@@ -15,6 +15,14 @@ from nltk.tokenize import word_tokenize
 import re
 from flask import Flask, render_template, request
 import matplotlib
+from flask import Flask, request, render_template, redirect, url_for, flash,jsonify
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask import render_template, request, url_for, redirect
+from datetime import datetime
+import time
+from datetime import datetime, timezone
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -25,6 +33,10 @@ import base64
 import pandas as pd
 from collections import Counter
 import spacy
+
+import requests
+import json
+from concurrent.futures import ThreadPoolExecutor
 #cleaning raw text file
 def clean(text):
     cleaned_text = text.replace('\t', '').replace('\n', '').replace(',', '')
@@ -82,9 +94,6 @@ def remove_mail_and_fraction(s):
 
 
 
-import requests
-import json
-from concurrent.futures import ThreadPoolExecutor
 
 session = requests.Session()
 def remove_words(text_list, remove_list):
@@ -847,14 +856,7 @@ def perform_topic_modeling(texts, num_topics=5, num_words=5):
     topics = extract_topics(lda_model, num_words)
     return topics
 
-from flask import Flask, request, render_template, redirect, url_for, flash,jsonify
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask import render_template, request, url_for, redirect
-from datetime import datetime
-import time
-from datetime import datetime, timezone
+
 # Instantiate the Flask app first
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
